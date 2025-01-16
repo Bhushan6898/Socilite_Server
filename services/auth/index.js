@@ -38,7 +38,7 @@ export const login = async (req, res) => {
     });
   } catch (error) {
     console.error("Error during login:", error);
-    return res.status(500).json({ message: "Internal server error sss" });
+    return res.status(500).json({ message: "Internal server error" });
   }
 };
 
