@@ -49,7 +49,7 @@ const farmingUserSchema = new Schema({
     enum: ["Granted", "NotGranted"], 
     default: "NotGranted" 
   }
-}, { timestamps: true }); // Automatically adds createdAt and updatedAt fields
+}, { timestamps: true }); 
 
 
 export const FarmingUserModel = mongoose.model("FarmingUser", farmingUserSchema, "FarmingUser");
