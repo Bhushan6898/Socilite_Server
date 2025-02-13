@@ -6,7 +6,7 @@ import { createToken } from '../../middleware/jwt/index.js';
 import createOtp from 'otp-generator'
 import { otpmodel } from '../../schemas/auth Schema/index.js';
 import {  senderMail } from '../../middleware/email/email.sender.js';
-
+import jwt from 'jsonwebtoken';
 dotenv.config();
 
 
@@ -15,6 +15,25 @@ export const server = (req, res) => {
   res.status(200).send('Server is alive and working!');
 console.log("connect");
 
+};
+
+export const verification = (req, res, next) => {
+  const cookies = req.cookies;
+  const { token, role } = cookies;
+ 
+  if (!token || !role) {
+    return res.status(401).json({ message: 'User not authorized. Token or role is missing.' });
+  }
+  jwt.verify(token, process.env.JWT_SECRET, (err, decodedUser) => {
+    if (err) {
+      return res.status(403).json({ message: 'Token is not valid.' });
+    }
+    req.user = decodedUser;
+    const { id } = decodedUser;
+  
+    
+    return res.status(200).json({ id, role });
+  });
 };
 export const genrateotp = async (req, res) => {
   const { email } = req.body;
@@ -194,8 +213,8 @@ export const login = async (req, res) => {
       return res.status(401).json({ message: "Invalid password" });
     }
 
-    // Password is correct, create token and set cookies
-    const accessToken = createToken(user); // Assuming createToken function is defined elsewhere
+ 
+    const accessToken = createToken(user); 
 
     const cookieOptions = {
       maxAge: 24 * 60 * 60 * 1000,  
@@ -219,6 +238,33 @@ export const login = async (req, res) => {
     return res.status(500).json({ message: "Internal server error" });
   }
 };
+export const logout = async (req, res, next) => {
+ console.log("call");
+ 
+  try {
+
+   res.clearCookie('token', { 
+      httpOnly: true, 
+      sameSite: 'None', 
+      secure: process.env.NODE_ENV === 'production',  
+    
+    });
+
+    res.clearCookie('role', { 
+      httpOnly: true, 
+      sameSite: 'None', 
+      secure: process.env.NODE_ENV === 'production', 
+    
+    });
+
+   
+
+    return res.status(200).json({ message: "Logout successful!" });
+  } catch (error) {
+    return next(createError(500, "An error occurred while logging out"))
+  }
+}
+
 
 export const register = async (req, res) => {
 
