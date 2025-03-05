@@ -1,55 +1,114 @@
 import mongoose from "mongoose";
 
-
 const Schema = mongoose.Schema;
 
-// Farming User Schema
-const farmingUserSchema = new Schema({
-  name: { 
+
+const socialiteUserSchema = new Schema({
+  firstname: { 
     type: String, 
     required: [true, 'First name is required'], 
     trim: true 
   },
- 
+  
+  lastname: { 
+    type: String, 
+    required: [true, 'Last name is required'], 
+    trim: true 
+  },
+
   email: { 
     type: String, 
     required: [true, 'Email is required'], 
+    unique: true, 
     trim: true 
   },
-  mobileNumber: { 
+  
+  username: { 
+    type: String, 
+    required: [true, 'Username is required'], 
+    unique: true, 
+    trim: true 
+  },
+  
+  
+  number: { 
     type: String, 
     required: [true, 'Mobile number is required'], 
-   
+    unique: true, 
   },
-  password: { 
-    type: String, 
-    required: [true, 'Password is required'], 
-  },
-  country: { type: String, trim: true },
-  state: { type: String, trim: true },
-  city: { type: String, trim: true },
-  farmName: { 
+  
+  country: { 
     type: String, 
     trim: true 
   },
- 
+  
+  state: { 
+    type: String, 
+    trim: true 
+  },
+  
+  city: { 
+    type: String, 
+    trim: true 
+  },
+
+  profilePicture: { 
+    type: String, 
+    default: "default-avatar.png", // Default profile picture
+  },
+  
+  bio: { 
+    type: String, 
+    trim: true 
+  },
+  
+  followersCount: { 
+    type: Number, 
+    default: 0 
+  },
+
+  followingCount: { 
+    type: Number, 
+    default: 0 
+  },
+
+  postsCount: { 
+    type: Number, 
+    default: 0 
+  },
+
   role: { 
     type: String, 
-    enum: ["Farmer", "Buyer", "Admin"], 
-    default: "Farmer" 
+    enum: ["User", "Admin", "Moderator"], 
+    default: "User" 
   },
-  profileImage: { type: String }, // Optional field for profile picture
+  
   status: { 
     type: String, 
-    enum: ["Active", "Inactive"], 
-    default: "Inactive" 
+    enum: ["Active", "Inactive", "Banned"], 
+    default: "Active" 
   },
+
+  // notificationsEnabled: { 
+  //   type: Boolean, 
+  //   default: true 
+  // },
+
+  // isVerified: { 
+  //   type: Boolean, 
+  //   default: false 
+  // },
+  
+  lastLogin: { 
+    type: Date 
+  },
+
   permissions: { 
     type: String, 
     enum: ["Granted", "NotGranted"], 
-    default: "NotGranted" 
+    default: "Granted" 
   }
-}, { timestamps: true }); 
 
+}, { timestamps: true });
 
-export const FarmingUserModel = mongoose.model("FarmingUser", farmingUserSchema, "FarmingUser");
+export const SocialiteUserModel = mongoose.model("SocialiteUser", socialiteUserSchema, "SocialiteUser");
