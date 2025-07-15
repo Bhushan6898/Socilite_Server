@@ -35,6 +35,7 @@ app.use("/user", userroutes);
 
 const DB_URI = process.env.DB_URI;
 
+
 // Connect to MongoDB
 mongoose.connect(DB_URI, {
   useNewUrlParser: true,
