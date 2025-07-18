@@ -180,6 +180,7 @@ export const genrateotp = async (req, res) => {
 export const login = async (req, res) => {
   try {
     const { email,  otp } = req.body;
+    
   
     if (!email) {
       return res.status(400).json({ message: "Email is required" });

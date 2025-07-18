@@ -19,7 +19,7 @@ const PORT = process.env.PORT || 3001;
 app.use(cors({
   origin: [
     'http://localhost:3000' ,
-    'https://farmdata365.netlify.app' 
+    'https://socilite1.netlify.app' 
 
   ],
   
