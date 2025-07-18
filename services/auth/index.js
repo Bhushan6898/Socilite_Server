@@ -5,8 +5,9 @@ import { SocialiteUserModel } from '../../schemas/Userchema/index.js';
 import { createToken } from '../../middleware/jwt/index.js';
 import createOtp from 'otp-generator'
 import { otpmodel } from '../../schemas/auth Schema/index.js';
-import {  senderMail } from '../../middleware/email/email.sender.js';
+import { senderMail } from '../../middleware/email/email.sender.js';
 import jwt from 'jsonwebtoken';
+import { log } from 'console';
 dotenv.config();
 
 
@@ -20,7 +21,8 @@ export const server = (req, res) => {
 export const verification = (req, res, next) => {
   const cookies = req.cookies;
   const { token, role } = cookies;
- 
+
+
   if (!token || !role) {
     return res.status(401).json({ message: 'User not authorized. Token or role is missing.' });
   }
@@ -30,20 +32,20 @@ export const verification = (req, res, next) => {
     }
     req.user = decodedUser;
     const { id } = decodedUser;
-  
-    
+
+
     return res.status(200).json({ id, role });
   });
 };
 export const genrateotp = async (req, res) => {
   const { email } = req.body;
   try {
-   
+
     const user = await SocialiteUserModel.findOne({ email });
     if (!user) {
       return res.status(401).json({ message: 'Invalid email' });
     }
-   
+
     const otp = createOtp.generate(6, {
       upperCaseAlphabets: false,
       specialChars: false,
@@ -58,7 +60,7 @@ export const genrateotp = async (req, res) => {
       created_at: new Date(Date.now())
     });
     sendotp.save();
-   
+
 
     // Send email with the OTP
     senderMail.sendMail({
@@ -167,8 +169,8 @@ export const genrateotp = async (req, res) => {
         </html>
       `,
     });
-    
-    
+
+
 
     return res.status(200).json({ message: 'OTP sent successfully!' });
   } catch (error) {
@@ -179,31 +181,34 @@ export const genrateotp = async (req, res) => {
 
 export const login = async (req, res) => {
   try {
-    const { email,  otp } = req.body;
-    
-  
+    const { email,password } = req.body;
+
+
     if (!email) {
       return res.status(400).json({ message: "Email is required" });
+    }
+    if (!password) {
+      return res.status(400).json({ message: "Password is required" });
     }
 
     const user = await SocialiteUserModel.findOne({ email });
     if (!user) {
       return res.status(401).json({ message: "User not found" });
     }
-      const otpRecord = await otpmodel.findOne({ email, otp });
-      if (!otpRecord) {
-        return res.status(401).json({ message: 'Invalid OTP' });
-      }
-    const accessToken = createToken(user); 
+    
+    if (password!==user.password) {
+      return res.status(401).json({ message: "Invalid password" });
+    }
+    const accessToken = createToken(user);
 
     const cookieOptions = {
-      maxAge: 24 * 60 * 60 * 1000,  
-      httpOnly: true,                
-      sameSite: 'None',              
-      secure: process.env.NODE_ENV === 'production', 
+      maxAge: 24 * 60 * 60 * 1000,
+      httpOnly: true,
+      sameSite: 'None',
+      secure: process.env.NODE_ENV === 'production',
     };
     res.cookie('token', accessToken, cookieOptions);
-    res.cookie('role', user.role, cookieOptions); 
+    res.cookie('role', user.role, cookieOptions);
 
     // Return success message with user details
     return res.status(200).json({
@@ -219,17 +224,17 @@ export const login = async (req, res) => {
 export const logout = async (req, res, next) => {
   try {
 
-   res.clearCookie('token', { 
-      httpOnly: true, 
-      sameSite: 'None', 
-      secure: process.env.NODE_ENV === 'production',  
-    
+    res.clearCookie('token', {
+      httpOnly: true,
+      sameSite: 'None',
+      secure: process.env.NODE_ENV === 'production',
+
     });
-    res.clearCookie('role', { 
-      httpOnly: true, 
-      sameSite: 'None', 
-      secure: process.env.NODE_ENV === 'production', 
-    
+    res.clearCookie('role', {
+      httpOnly: true,
+      sameSite: 'None',
+      secure: process.env.NODE_ENV === 'production',
+
     });
 
     return res.status(200).json({ message: "Logout successful!" });
@@ -241,54 +246,58 @@ export const logout = async (req, res, next) => {
 
 export const register = async (req, res) => {
 
-  const {firstname,lastname,email, number,username}=req.body;
-try{
-  const existuser= await SocialiteUserModel.findOne({
-    $or: [{ email: email }, { number: number }]
-  })
-  if (existuser) {
-    if (existuser.email === email) {
-      return res.status(401).json({ message: "Email already exists" });
-    } else if (existuser.number === number) {
-      return res.status(401).json({ message: "Mobile number already exists" });
-    }
-  }
-  const user= await new SocialiteUserModel({
-    firstname,
-    lastname,
-    email,
-    number,
-     username
-  })
-await user.save();
-
-return res.status(200).json({ message: "User registered successfully" });
-} catch (error) {
-  console.error(error);
-  return res.status(500).json({ message: "Internal server error" });
-}
+  const { name, username, email, password,number } = req.body;
+  console.log("Registering user:", { name, username, email, password });
   
-  };
-
-  export const getuserdata = async (req, res) => {
-    try {
-      const { id} = req.user; 
-
-     
-      const user = await SocialiteUserModel.findOne({ _id: id });
-  
-      if (!user) {
-        return res.status(404).json({ message: "User not found" });
+  try {
+    const existuser = await SocialiteUserModel.findOne({
+      $or: [{ email: email }, { username: username },{number:number}]
+    })
+    if (existuser) {
+      if (existuser.email === email) {
+        return res.status(401).json({ message: "Email already exists" });
+      } else if (existuser.username === username) {
+        return res.status(401).json({ message: "Username name already exists" });
       }
-  
-      
-      res.status(200).json({
-        message: "User data retrieved successfully",
-         user,
-      });
-    } catch (error) {
-      console.error("Error retrieving user data:", error); // Log the error
-      res.status(500).json({ message: "Server error, please try again later" });
+      else if (existuser.number === number) {
+        return res.status(401).json({ message: "number  already exists" });
+      }
     }
-  };
-  
+    const user = await new SocialiteUserModel({
+      name,
+      email,
+      password,
+      username,
+      number
+    })
+    await user.save();
+
+    return res.status(200).json({ message: "User registered successfully" });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+
+};
+
+export const getuserdata = async (req, res) => {
+  try {
+    const { id } = req.user;
+
+
+    const user = await SocialiteUserModel.findOne({ _id: id });
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+
+    res.status(200).json({
+      message: "User data retrieved successfully",
+      user,
+    });
+  } catch (error) {
+    console.error("Error retrieving user data:", error); // Log the error
+    res.status(500).json({ message: "Server error, please try again later" });
+  }
+};

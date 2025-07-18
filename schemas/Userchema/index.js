@@ -4,17 +4,12 @@ const Schema = mongoose.Schema;
 
 
 const socialiteUserSchema = new Schema({
-  firstname: { 
+  name: { 
     type: String, 
     required: [true, 'First name is required'], 
     trim: true 
   },
   
-  lastname: { 
-    type: String, 
-    required: [true, 'Last name is required'], 
-    trim: true 
-  },
 
   email: { 
     type: String, 
@@ -30,7 +25,11 @@ const socialiteUserSchema = new Schema({
     trim: true 
   },
   
-  
+  password: { 
+    type: String, 
+    required: [true, 'Mobile number is required'], 
+    trim: true
+  },
   number: { 
     type: String, 
     required: [true, 'Mobile number is required'], 
