@@ -7,12 +7,11 @@ import { fileURLToPath } from 'url';
 import  { dirname } from 'path';
 import cookieParser from 'cookie-parser';
 import userroutes from './routes/user/index.js';
-
 import routes from './routes/auth/index.js';
-
-
-
+import fileUpload from 'express-fileupload';
 dotenv.config();
+ 
+
 const app = express();
 const PORT = process.env.PORT || 3001;
 
@@ -28,13 +27,18 @@ app.use(cors({
 
 app.use(bodyParser.json());
 app.use(cookieParser());
-
+app.use(fileUpload({
+  useTempFiles:true,
+  tempFileDir: "/tmp/" 
+}))
 
 app.use("/", routes);
 app.use("/user", userroutes);
 
 const DB_URI = process.env.DB_URI;
 
+
+  
 
 // Connect to MongoDB
 mongoose.connect(DB_URI, {

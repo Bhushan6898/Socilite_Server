@@ -27,38 +27,22 @@ const socialiteUserSchema = new Schema({
   
   password: { 
     type: String, 
-    required: [true, 'Mobile number is required'], 
     trim: true
   },
   number: { 
     type: String, 
-    required: [true, 'Mobile number is required'], 
     unique: true, 
   },
   
-  country: { 
-    type: String, 
-    trim: true 
-  },
-  
-  state: { 
-    type: String, 
-    trim: true 
-  },
-  
-  city: { 
-    type: String, 
-    trim: true 
-  },
-
   profilePicture: { 
     type: String, 
-    default: "default-avatar.png", // Default profile picture
+    default: "", // Default profile picture
   },
   
   bio: { 
     type: String, 
-    trim: true 
+    trim: true ,
+    default: "This is my bio"
   },
   
   followersCount: { 
@@ -88,15 +72,6 @@ const socialiteUserSchema = new Schema({
     default: "Active" 
   },
 
-  // notificationsEnabled: { 
-  //   type: Boolean, 
-  //   default: true 
-  // },
-
-  // isVerified: { 
-  //   type: Boolean, 
-  //   default: false 
-  // },
   
   lastLogin: { 
     type: Date 
