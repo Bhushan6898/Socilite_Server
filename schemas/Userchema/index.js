@@ -86,3 +86,48 @@ const socialiteUserSchema = new Schema({
 }, { timestamps: true });
 
 export const SocialiteUserModel = mongoose.model("SocialiteUser", socialiteUserSchema, "SocialiteUser");
+
+
+
+const postSchema = new Schema({
+  userId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'SocialiteUser',
+    required: true,
+  },
+  caption: {
+    type: String,
+    trim: true,
+  },
+  media: [
+    {
+      url: { type: String, required: true },
+      type: {
+        type: String,
+        enum: ['image', 'video'],
+
+      }
+    }
+  ],
+   music: {
+    type: String, 
+    trim: true,
+  },
+  likes: [
+    {
+      userId: { type: mongoose.Schema.Types.ObjectId, ref: 'SocialiteUser' },
+      likedAt: { type: Date, default: Date.now }
+    }
+  ],
+  comments: [
+    {
+      userId: { type: mongoose.Schema.Types.ObjectId, ref: 'SocialiteUser' },
+      text: { type: String, required: true },
+      createdAt: { type: Date, default: Date.now }
+    }
+  ],
+}, {
+  timestamps: true 
+});
+
+ export const PostModel= mongoose.model('Post', postSchema);

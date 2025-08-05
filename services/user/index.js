@@ -1,14 +1,14 @@
-import { SocialiteUserModel } from "../../schemas/Userchema/index.js";
+import { PostModel, SocialiteUserModel } from "../../schemas/Userchema/index.js";
 import crypto from 'crypto'
 import fs from "fs";
-import { uploadToCloudinary } from "../../middleware/cluodenary/index.js";
-
+import { uploadToCloudinary, uploadToCloudinarypost } from "../../middleware/cluodenary/index.js";
+import { NotificationModel } from "../../schemas/auth Schema/index.js";
+import { log } from "console";
 
 export const updatedate = async (req, res) => {
   const { id } = req.user;
   const { name, username, email, number, bio } = req.body;
 
-  // Basic email validation
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   if (!email || !emailRegex.test(email)) {
     return res.status(400).json({ message: "Invalid email format" });
@@ -26,7 +26,6 @@ export const updatedate = async (req, res) => {
       const imageFile = req.files.profileImage;
       const filePath = imageFile.tempFilePath;
 
-
       try {
         const fileBuffer = fs.readFileSync(filePath);
         const fileHash = crypto.createHash("sha256").update(fileBuffer).digest("hex");
@@ -34,9 +33,8 @@ export const updatedate = async (req, res) => {
         const cloudinaryResult = await uploadToCloudinary(filePath, `product_${fileHash}`, "socilite-user");
 
         if (cloudinaryResult.existing) {
-          return res.status(400).json({ message: "Product image already exists in Cloudinary." });
+          return res.status(400).json({ message: "Profile image already exists in Cloudinary." });
         }
-
 
         profilePicture = cloudinaryResult?.secure_url || profilePicture;
       } catch (err) {
@@ -44,6 +42,7 @@ export const updatedate = async (req, res) => {
         return res.status(500).json({ message: "Image upload failed" });
       }
     }
+
 
     const updatedUser = await SocialiteUserModel.findByIdAndUpdate(
       id,
@@ -58,9 +57,117 @@ export const updatedate = async (req, res) => {
       { new: true }
     );
 
-    return res.status(200).json({ message: "Profile updated successfully", user: updatedUser });
+    const newNotification = new NotificationModel({
+      userId: id,
+      message: "Your profile has been updated successfully!",
+      type: "success",
+    });
+
+
+    await newNotification.save();
+
+    return res.status(200).json({
+      message: "Profile updated successfully",
+      user: updatedUser,
+    });
+
   } catch (error) {
     console.error("Update Error:", error);
     return res.status(500).json({ message: "Internal server error" });
   }
 };
+
+export const getNotification = async (req, res) => {
+  try {
+    const { id } = req.user;
+
+
+    const Notification = await NotificationModel.find({ userId: id });
+
+    if (!Notification) {
+      return res.status(404).json({ message: "Notification not found" });
+    }
+
+    res.status(200).json({
+      message: "Notification data retrieved successfully",
+      Notification,
+    });
+  } catch (error) {
+    console.error("Error retrieving user data:", error); // Log the error
+    res.status(500).json({ message: "Server error, please try again later" });
+  }
+  
+};
+
+
+export const postdata = async (req, res) => {
+  const { id } = req.user; 
+  const { caption, location, music } = req.body;
+
+  try {
+    const user = await SocialiteUserModel.findById(id);
+    if (!user) return res.status(404).json({ message: 'User not found' });
+
+    if (!req.files ) {
+      return res.status(400).json({ message: 'No media files uploaded' });
+    }
+
+    const files = Array.isArray(req.files.files) ? req.files.files : [req.files.files];
+    const mediaUploads = await Promise.all(
+      files.map(async (file) => {
+        const uploadResult = await uploadToCloudinarypost(file.tempFilePath);
+        fs.unlinkSync(file.tempFilePath); 
+        return {
+          url: uploadResult.url,
+          type: uploadResult.type === 'video' ? 'video' : 'image',
+        };
+      })
+    );
+    await SocialiteUserModel.findByIdAndUpdate(
+  id,                    
+  { $inc: { postsCount: 1 } },  
+  { new: true }                 
+);
+    const newPost = new PostModel ({
+      userId:id,
+      caption,
+      location,
+      music,
+       media: mediaUploads,
+    });
+
+    await newPost.save();
+    const newNotification = new NotificationModel({
+      userId: id,
+      message: 'Your post has been created successfully.',
+      type: 'success',
+    });
+
+    await newNotification.save();
+
+    return res.status(200).json({ message: 'Post created successfully!', post: newPost });
+
+  } catch (error) {
+    console.error('Error in postdata:', error);
+    return res.status(500).json({ message: 'Internal server error' });
+  }
+};
+
+export const getAllPostsByUser = async (req, res) => {
+  const { id } = req.user; 
+
+  try {
+    const user = await SocialiteUserModel.findById(id);
+    if (!user) return res.status(404).json({ message: 'User not found' });
+
+    const posts = await PostModel.find({ userId: id }).sort({ createdAt: -1 });
+
+    return res.status(200).json({ message: 'Posts fetched successfully', posts,user});
+  } catch (error) {
+    console.error('Error in getAllPostsByUser:', error);
+    return res.status(500).json({ message: 'Internal server error' });
+  }
+};
+
+
+

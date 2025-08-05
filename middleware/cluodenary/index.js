@@ -31,3 +31,17 @@ dotenv.config()
     throw new Error("Cloudinary upload failed: " + error.message);
   }
 };
+
+
+export const uploadToCloudinarypost = async (filePath) => {
+   try {
+    const result = await cloudinary.uploader.upload(filePath, {
+      resource_type: 'auto', 
+      folder: 'socialite-posts' 
+    });
+    return result;
+  } catch (error) {
+    console.error("Cloudinary upload failed", error);
+    throw new Error("Cloudinary upload failed");
+  }
+};

@@ -5,6 +5,7 @@ import { SocialiteUserModel } from '../../schemas/Userchema/index.js';
 import { createToken } from '../../middleware/jwt/index.js';
 
 import jwt from 'jsonwebtoken';
+import { NotificationModel } from '../../schemas/auth Schema/index.js';
 
 dotenv.config();
 
@@ -40,7 +41,6 @@ export const verification = (req, res, next) => {
 export const login = async (req, res) => {
   try {
     const { email,password } = req.body;
-
 
     if (!email) {
       return res.status(400).json({ message: "Email is required" });
@@ -129,6 +129,14 @@ export const register = async (req, res) => {
       number
     })
     await user.save();
+     const newNotification = new NotificationModel({
+          userId: user._id,
+          message: "Welcome! Your account has been created successfully.",
+          type: "success",
+        });
+    
+    
+        await newNotification.save();
 
     return res.status(200).json({ message: "User registered successfully" });
   } catch (error) {
