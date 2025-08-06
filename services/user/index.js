@@ -116,10 +116,12 @@ export const postdata = async (req, res) => {
     const mediaUploads = await Promise.all(
       files.map(async (file) => {
         const uploadResult = await uploadToCloudinarypost(file.tempFilePath);
+       console.log('Upload Result:', uploadResult);
+       
         fs.unlinkSync(file.tempFilePath); 
         return {
           url: uploadResult.url,
-          type: uploadResult.type === 'video' ? 'video' : 'image',
+          type: uploadResult.resource_type === 'video' ? 'video' : 'image',
         };
       })
     );
