@@ -1,5 +1,5 @@
 import express from "express";
-import {   getuserdata, login, logout, register, server, verification } from "../../services/auth/index.js";
+import {   getAllPosts, getuserdata, login, logout, register, server, verification } from "../../services/auth/index.js";
 import { cheack } from "../../middleware/jwt/index.js";
 
 
@@ -11,6 +11,7 @@ routes.post('/logout',cheack, logout);
 routes.post('/register', register);
 routes.get('/getuser',cheack, getuserdata);
 routes.get('/verify', verification);
+routes.get('/all-post', getAllPosts);
 
 
 

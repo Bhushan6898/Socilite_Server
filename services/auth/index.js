@@ -1,7 +1,7 @@
 
 
 import dotenv from 'dotenv';
-import { SocialiteUserModel } from '../../schemas/Userchema/index.js';
+import { PostModel, SocialiteUserModel } from '../../schemas/Userchema/index.js';
 import { createToken } from '../../middleware/jwt/index.js';
 
 import jwt from 'jsonwebtoken';
@@ -170,3 +170,19 @@ export const getuserdata = async (req, res) => {
 };
 
 
+export const getAllPosts = async (req, res) => {
+  console.log("Fetching all posts...");
+  
+  try {
+    const posts = await PostModel.find()
+      .populate('userId', 'name username email profilePicture bio') // Post author
+      .populate('likes.userId', 'name username profilePicture') // Like authors
+      .populate('comments.userId', 'name username profilePicture') // Comment authors
+      .sort({ createdAt: -1 });
+
+    return res.status(200).json({ message: 'Posts fetched successfully', posts });
+  } catch (error) {
+    console.error('Error in getAllPosts:', error);
+    return res.status(500).json({ message: 'Internal server error' });
+  }
+};
