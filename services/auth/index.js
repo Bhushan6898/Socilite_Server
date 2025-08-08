@@ -186,3 +186,30 @@ export const getAllPosts = async (req, res) => {
     return res.status(500).json({ message: 'Internal server error' });
   }
 };
+
+
+export const getAllUsers = async (req, res) => {
+  try {
+    const users = await SocialiteUserModel.find().lean();
+
+    // For each user, fetch their posts
+    const usersWithPosts = await Promise.all(
+      users.map(async (user) => {
+        const posts = await PostModel.find({ userId: user._id }).lean();
+        return {
+          ...user,
+          posts,
+        };
+      })
+    );
+
+    return res.status(200).json({
+      message: 'Users fetched successfully',
+      users: usersWithPosts
+    });
+  } catch (error) {
+    console.error('Error in getAllUsers:', error);
+    return res.status(500).json({ message: 'Internal server error' });
+  }
+};
+

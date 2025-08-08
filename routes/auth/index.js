@@ -1,5 +1,5 @@
 import express from "express";
-import {   getAllPosts, getuserdata, login, logout, register, server, verification } from "../../services/auth/index.js";
+import {   getAllPosts, getAllUsers, getuserdata, login, logout, register, server, verification } from "../../services/auth/index.js";
 import { cheack } from "../../middleware/jwt/index.js";
 
 
@@ -12,7 +12,7 @@ routes.post('/register', register);
 routes.get('/getuser',cheack, getuserdata);
 routes.get('/verify', verification);
 routes.get('/all-post', getAllPosts);
-
+routes.get('/all-users', getAllUsers);
 
 
 
