@@ -60,7 +60,7 @@ export const login = async (req, res) => {
     const accessToken = createToken(user);
 
     const cookieOptions = {
-      maxAge: 24 * 60 * 60 * 1000,
+      maxAge:  30 * 24 * 60 * 60 * 1000 ,
       httpOnly: true,
       sameSite: 'None',
       secure: process.env.NODE_ENV === 'production',
@@ -171,21 +171,30 @@ export const getuserdata = async (req, res) => {
 
 
 export const getAllPosts = async (req, res) => {
-  console.log("Fetching all posts...");
-  
   try {
     const posts = await PostModel.find()
       .populate('userId', 'name username email profilePicture bio') // Post author
-      .populate('likes.userId', 'name username profilePicture') // Like authors
-      .populate('comments.userId', 'name username profilePicture') // Comment authors
-      .sort({ createdAt: -1 });
+      .populate('likes.userId', 'name username profilePicture')     // Like authors
+      .populate('comments.userId', 'name username profilePicture')  // Comment authors
+      .sort({ createdAt: -1 })
+      .lean(); // returns plain JS objects instead of Mongoose docs
 
-    return res.status(200).json({ message: 'Posts fetched successfully', posts });
+    // Remove duplicates based on _id
+    const uniquePosts = Array.from(
+      new Map(posts.map(post => [post._id.toString(), post])).values()
+    );
+
+    return res.status(200).json({
+      message: 'Posts fetched successfully',
+      posts: uniquePosts
+    });
+
   } catch (error) {
     console.error('Error in getAllPosts:', error);
     return res.status(500).json({ message: 'Internal server error' });
   }
 };
+
 
 
 export const getAllUsers = async (req, res) => {
@@ -202,6 +211,7 @@ export const getAllUsers = async (req, res) => {
         };
       })
     );
+    console.log('Users fetched successfully:', usersWithPosts.length);
 
     return res.status(200).json({
       message: 'Users fetched successfully',

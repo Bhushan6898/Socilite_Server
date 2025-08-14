@@ -45,15 +45,9 @@ const socialiteUserSchema = new Schema({
     default: "This is my bio"
   },
   
-  followersCount: { 
-    type: Number, 
-    default: 0 
-  },
-
-  followingCount: { 
-    type: Number, 
-    default: 0 
-  },
+  follower: { type: mongoose.Schema.Types.ObjectId, ref: 'SocialiteUser' }, 
+  following: { type: mongoose.Schema.Types.ObjectId, ref: 'SocialiteUser' },
+  
 
   postsCount: { 
     type: Number, 
