@@ -1,8 +1,8 @@
-import { PostModel, SocialiteUserModel } from "../../schemas/Userchema/index.js";
+import { PostModel, SocialiteUserModel } from "../../models/Userchema/index.js";
 import crypto from 'crypto'
 import fs from "fs";
 import { uploadToCloudinary, uploadToCloudinarypost } from "../../middleware/cluodenary/index.js";
-import { NotificationModel } from "../../schemas/auth Schema/index.js";
+import { NotificationModel } from "../../models/auth Schema/index.js";
 import { log } from "console";
 
 export const updatedate = async (req, res) => {
@@ -43,7 +43,6 @@ export const updatedate = async (req, res) => {
       }
     }
 
-
     const updatedUser = await SocialiteUserModel.findByIdAndUpdate(
       id,
       {
@@ -81,7 +80,6 @@ export const getNotification = async (req, res) => {
   try {
     const { id } = req.user;
 
-
     const Notification = await NotificationModel.find({ userId: id });
 
     if (!Notification) {
@@ -116,8 +114,7 @@ export const postdata = async (req, res) => {
     const mediaUploads = await Promise.all(
       files.map(async (file) => {
         const uploadResult = await uploadToCloudinarypost(file.tempFilePath);
-       console.log('Upload Result:', uploadResult);
-       
+            
         fs.unlinkSync(file.tempFilePath); 
         return {
           url: uploadResult.url,

@@ -1,11 +1,11 @@
 
 
 import dotenv from 'dotenv';
-import { PostModel, SocialiteUserModel } from '../../schemas/Userchema/index.js';
+import { PostModel, SocialiteUserModel } from '../../models/Userchema/index.js';
 import { createToken } from '../../middleware/jwt/index.js';
-
+import { SettingModel } from '../../models/setting Schema/setting.js';
 import jwt from 'jsonwebtoken';
-import { NotificationModel } from '../../schemas/auth Schema/index.js';
+import { NotificationModel } from '../../models/auth Schema/index.js';
 
 dotenv.config();
 
@@ -168,6 +168,27 @@ export const getuserdata = async (req, res) => {
   }
   
 };
+export const genratesetting = async (req, res) => {
+  try {
+     const { id } = req.user;
+
+    const userId=id
+    let userSettings = await SettingModel.findOne({ userId });
+
+    if (!userSettings) {
+      userSettings = new SettingModel({ userId });
+      await userSettings.save();
+    }
+
+    res.status(200).json({
+      message: "Settings generated successfully",
+      settings: userSettings,
+    });
+  } catch (error) {
+    console.error("Error creating setting data:", error);
+    res.status(500).json({ message: "Server error, please try again later" });
+  }
+};
 
 
 export const getAllPosts = async (req, res) => {
@@ -211,8 +232,7 @@ export const getAllUsers = async (req, res) => {
         };
       })
     );
-    console.log('Users fetched successfully:', usersWithPosts.length);
-
+   
     return res.status(200).json({
       message: 'Users fetched successfully',
       users: usersWithPosts
