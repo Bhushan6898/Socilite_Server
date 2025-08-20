@@ -6,8 +6,8 @@ import dotenv from 'dotenv';
 import { fileURLToPath } from 'url';
 import  { dirname } from 'path';
 import cookieParser from 'cookie-parser';
-import userroutes from './routes/user/index.js';
-import routes from './routes/auth/index.js';
+import userroutes from './src/routes/user/index.js';
+import routes from './src/routes/auth/index.js';
 import fileUpload from 'express-fileupload';
 dotenv.config();
  

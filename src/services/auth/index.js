@@ -33,7 +33,7 @@ export const verification = (req, res, next) => {
     const { id } = decodedUser;
 
 
-    return res.status(200).json({ id, role });
+    return res.status(200).json({ id, role,token });
   });
 };
 
