@@ -226,9 +226,11 @@ export const getAllUsers = async (req, res) => {
     const usersWithPosts = await Promise.all(
       users.map(async (user) => {
         const posts = await PostModel.find({ userId: user._id }).lean();
+        const settings = await SettingModel.findOne({ userId: user._id }).lean();
         return {
           ...user,
           posts,
+         settings , 
         };
       })
     );
