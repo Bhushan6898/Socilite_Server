@@ -122,26 +122,57 @@ export const postdata = async (req, res) => {
         };
       })
     );
-    await SocialiteUserModel.findByIdAndUpdate(
-  id,                    
-  { $inc: { postsCount: 1 } },  
-  { new: true }                 
-);
-    const newPost = new PostModel ({
-      userId:id,
-      caption,
-      location,
-      music,
-       media: mediaUploads,
-    });
+   let newContent;
 
-    await newPost.save();
+    if (type === "post") {
+      newContent = new PostModel({
+        userId: id,
+        caption,
+        location,
+        music,
+        media: mediaUploads,
+      });
+      await SocialiteUserModel.findByIdAndUpdate(id, { $inc: { postsCount: 1 } });
+    } 
+    else if (type === "reel") {
+      if (mediaUploads.length !== 1 || mediaUploads[0].type !== "video") {
+        return res.status(400).json({ message: "Reels must contain exactly one video" });
+      }
+      newContent = new ReelModel({
+        userId: id,
+        video: {
+          url: mediaUploads[0].url,
+          duration: req.body.duration || null, // optional
+        },
+        caption,
+        music,
+      });
+      await SocialiteUserModel.findByIdAndUpdate(id, { $inc: { reelsCount: 1 } });
+    } 
+    else if (type === "story") {
+      if (mediaUploads.length !== 1) {
+        return res.status(400).json({ message: "Stories must contain exactly one media file" });
+      }
+      newContent = new StoryModel({
+        userId: id,
+        media: mediaUploads[0],
+        caption,
+        music,
+        expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000), // 24h expiry
+      });
+      await SocialiteUserModel.findByIdAndUpdate(id, { $inc: { storiesCount: 1 } });
+    } 
+    else {
+      return res.status(400).json({ message: "Invalid type. Must be post, reel, or story." });
+    }
+
+    await newContent.save();
+
     const newNotification = new NotificationModel({
       userId: id,
-      message: 'Your post has been created successfully.',
-      type: 'success',
+      message: `Your ${type} has been created successfully.`,
+      type: "success",
     });
-
     await newNotification.save();
 
     return res.status(200).json({ message: 'Post created successfully!', post: newPost });

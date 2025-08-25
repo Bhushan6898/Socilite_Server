@@ -36,7 +36,7 @@ const socialiteUserSchema = new Schema({
   
   profilePicture: { 
     type: String, 
-    default: "", // Default profile picture
+    default: "", 
   },
   
   bio: { 
@@ -50,6 +50,14 @@ const socialiteUserSchema = new Schema({
   
 
   postsCount: { 
+    type: Number, 
+    default: 0 
+  },
+    reelsCount: { 
+    type: Number, 
+    default: 0 
+  },
+    storiesCount: { 
     type: Number, 
     default: 0 
   },
@@ -125,3 +133,83 @@ const postSchema = new Schema({
 });
 
  export const PostModel= mongoose.model('Post', postSchema);
+
+ const reelSchema = new Schema({
+  userId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'SocialiteUser',
+    required: true,
+  },
+  video: {
+    url: { type: String, required: true },
+    duration: { type: Number, required: true }, // in seconds
+  },
+  caption: {
+    type: String,
+    trim: true,
+  },
+  music: {
+    type: String,
+    trim: true,
+  },
+  likes: [
+    {
+      userId: { type: mongoose.Schema.Types.ObjectId, ref: 'SocialiteUser' },
+      likedAt: { type: Date, default: Date.now },
+    }
+  ],
+  comments: [
+    {
+      userId: { type: mongoose.Schema.Types.ObjectId, ref: 'SocialiteUser' },
+      text: { type: String, required: true },
+      createdAt: { type: Date, default: Date.now }
+    }
+  ],
+  shares: [
+    {
+      userId: { type: mongoose.Schema.Types.ObjectId, ref: 'SocialiteUser' },
+      sharedAt: { type: Date, default: Date.now },
+    }
+  ]
+}, { timestamps: true });
+
+export const ReelModel = mongoose.model('Reel', reelSchema);
+
+
+const storySchema = new Schema({
+  userId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'SocialiteUser',
+    required: true,
+  },
+  media: {
+    url: { type: String, required: true },
+    type: {
+      type: String,
+      enum: ['image', 'video'],
+      required: true,
+    },
+    duration: { type: Number }, // optional, for video stories
+  },
+  caption: {
+    type: String,
+    trim: true,
+  },
+  music: {
+    type: String,
+    trim: true,
+  },
+  viewers: [
+    {
+      userId: { type: mongoose.Schema.Types.ObjectId, ref: 'SocialiteUser' },
+      viewedAt: { type: Date, default: Date.now }
+    }
+  ],
+  expiresAt: {
+    type: Date,
+    default: () => Date.now() + 24 * 60 * 60 * 1000, // 24 hours later
+  }
+}, { timestamps: true });
+
+export const StoryModel = mongoose.model('Story', storySchema);
+
