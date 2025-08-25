@@ -101,6 +101,8 @@ export const getNotification = async (req, res) => {
 export const postdata = async (req, res) => {
   const { id } = req.user; 
   const { caption, location, music } = req.body;
+  console.log(req.body,req.files);
+  
 
   try {
     const user = await SocialiteUserModel.findById(id);
