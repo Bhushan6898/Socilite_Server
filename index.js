@@ -17,7 +17,7 @@ const PORT = process.env.PORT || 3001;
 
 const allowedOrigins = [
   "http://localhost:3000", 
-  "https://socilite1.netlify.app"
+  "https://socilite.netlify.app"
 ];
 
 app.use(cors({
