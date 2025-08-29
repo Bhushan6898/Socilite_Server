@@ -99,91 +99,61 @@ export const getNotification = async (req, res) => {
 
 
 export const postdata = async (req, res) => {
-  const { id } = req.user; 
-  const { caption, location, music } = req.body;
-  console.log(req.body,req.files);
-  
+  const { id } = req.user;
+  const { caption, location, music, type } = req.body; // make sure type is sent from frontend
 
   try {
     const user = await SocialiteUserModel.findById(id);
-    if (!user) return res.status(404).json({ message: 'User not found' });
+    if (!user) return res.status(404).json({ message: "User not found" });
 
-    if (!req.files ) {
-      return res.status(400).json({ message: 'No media files uploaded' });
+    if (!req.files) {
+      return res.status(400).json({ message: "No media files uploaded" });
     }
 
     const files = Array.isArray(req.files.files) ? req.files.files : [req.files.files];
+
     const mediaUploads = await Promise.all(
       files.map(async (file) => {
         const uploadResult = await uploadToCloudinarypost(file.tempFilePath);
-            
-        fs.unlinkSync(file.tempFilePath); 
+        fs.unlinkSync(file.tempFilePath); // remove temp file
+
         return {
-          url: uploadResult.url,
-          type: uploadResult.resource_type === 'video' ? 'video' : 'image',
+          url: uploadResult.secure_url,
+          type: uploadResult.resource_type === "video" ? "video" : "image",
+          publicId: uploadResult.public_id, // store public_id for future deletion
         };
       })
     );
-   let newContent;
 
-    if (type === "post") {
-      newContent = new PostModel({
-        userId: id,
-        caption,
-        location,
-        music,
-        media: mediaUploads,
-      });
-      await SocialiteUserModel.findByIdAndUpdate(id, { $inc: { postsCount: 1 } });
-    } 
-    else if (type === "reel") {
-      if (mediaUploads.length !== 1 || mediaUploads[0].type !== "video") {
-        return res.status(400).json({ message: "Reels must contain exactly one video" });
-      }
-      newContent = new ReelModel({
-        userId: id,
-        video: {
-          url: mediaUploads[0].url,
-          duration: req.body.duration || null, // optional
-        },
-        caption,
-        music,
-      });
-      await SocialiteUserModel.findByIdAndUpdate(id, { $inc: { reelsCount: 1 } });
-    } 
-    else if (type === "story") {
-      if (mediaUploads.length !== 1) {
-        return res.status(400).json({ message: "Stories must contain exactly one media file" });
-      }
-      newContent = new StoryModel({
-        userId: id,
-        media: mediaUploads[0],
-        caption,
-        music,
-        expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000), // 24h expiry
-      });
-      await SocialiteUserModel.findByIdAndUpdate(id, { $inc: { storiesCount: 1 } });
-    } 
-    else {
-      return res.status(400).json({ message: "Invalid type. Must be post, reel, or story." });
-    }
+    await SocialiteUserModel.findByIdAndUpdate(
+      id,
+      { $inc: { postsCount: 1 } },
+      { new: true }
+    );
 
-    await newContent.save();
+    const newPost = new PostModel({
+      userId: id,
+      caption,
+      location,
+      music,
+      media: mediaUploads,
+    });
+    await newPost.save();
 
     const newNotification = new NotificationModel({
       userId: id,
-      message: `Your ${type} has been created successfully.`,
+      message: `Your ${type || "post"} has been created successfully.`,
       type: "success",
     });
     await newNotification.save();
 
-    return res.status(200).json({ message: 'Post created successfully!', post: newPost });
-
+    return res.status(200).json({ message: "Post created successfully!", post: newPost });
   } catch (error) {
-    console.error('Error in postdata:', error);
-    return res.status(500).json({ message: 'Internal server error' });
+    console.error("Error in postdata:", error);
+    return res.status(500).json({ message: "Internal server error" });
   }
 };
+
 
 export const getAllPostsByUser = async (req, res) => {
   const { id } = req.user; 
