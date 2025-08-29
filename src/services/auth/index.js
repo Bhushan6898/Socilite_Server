@@ -60,13 +60,16 @@ export const login = async (req, res) => {
     const accessToken = createToken(user);
 
     const cookieOptions = {
-      maxAge:  30 * 24 * 60 * 60 * 1000 ,
-      httpOnly: true,
-      sameSite: 'None',
-      secure: process.env.NODE_ENV === 'production',
-    };
+    maxAge: 30 * 24 * 60 * 60 * 1000,
+    httpOnly: true,
+    sameSite: "None", 
+    secure: process.env.NODE_ENV === "production", 
+  };
     res.cookie('token', accessToken, cookieOptions);
-    res.cookie('role', user.role, cookieOptions);
+   res.cookie("role", user.role, {
+    ...cookieOptions,
+    httpOnly: false,
+  });
 
     // Return success message with user details
     return res.status(200).json({

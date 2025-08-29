@@ -15,14 +15,20 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-app.use(cors({
-  origin: [
-    'http://localhost:3000' ,
-    'https://socilite1.netlify.app' 
+const allowedOrigins = [
+  "http://localhost:3000", 
+  "https://socilite1.netlify.app"
+];
 
-  ],
-  
-  credentials: true  
+app.use(cors({
+  origin: function (origin, callback) {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error("Not allowed by CORS"));
+    }
+  },
+  credentials: true
 }));
 
 app.use(bodyParser.json());
